@@ -1,4 +1,4 @@
-# code-with-quarkus Project
+# Sample Quarkus2.0+kotlin+integration tests
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
@@ -11,48 +11,29 @@ You can run your application in dev mode that enables live coding using:
 ./mvnw compile quarkus:dev
 ```
 
+Now with the dev services the application will detect that the mongodb dependency is present on the classpath and will download and start a instance for us if we have docker installed on our system.
+
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
-## Packaging and running the application
+## Integration tests
 
-The application can be packaged using:
-```shell script
-./mvnw package
+In order to run the integration tests you are required to include the maven-fail-safe plugin
+
 ```
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
-
-If you want to build an _über-jar_, execute the following command:
-```shell script
-./mvnw package -Dquarkus.package.type=uber-jar
+    <plugin>
+      <artifactId>maven-failsafe-plugin</artifactId>
+      <version>${failsafe-plugin.version}</version>
+      <executions>
+        <execution>
+          <goals>
+            <goal>integration-test</goal>
+            <goal>verify</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
 ```
+By this means you are able to use the @QuarkusIntegrationTests annotation which will take care of executing yout integration tests. The devServices do not run in the integration tests pahse but they do run on the unit testing phase, so in order to have a mongo instance available for the integration tests we are required to implement a class that implements the ```QuarkusTestResourceLifecycleManager``` interface. This class will be started on the first tests which contains the annotation ```@QuarkusTestResource(MockMongoDatabase::class)``` in order to indicate the dependence on the mongo resource.
+This example contains some println lines to show when the mongo instance is started and when is stopped.
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
 
-## Creating a native executable
-
-You can create a native executable using: 
-```shell script
-./mvnw package -Pnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/code-with-quarkus-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.html.
-
-## Related Guides
-
-- Kotlin ([guide](https://quarkus.io/guides/kotlin)): Write your services in Kotlin
-
-## Provided Code
-
-### RESTEasy JAX-RS
-
-Easily start your RESTful Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started#the-jax-rs-resources)
